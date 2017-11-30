@@ -8,7 +8,7 @@
 
     
 
-    <script src="messaging-client-full.js?07ff37f0aad6c4342f0b"></script>
+    <script src="messaging-client-full.js?e7da727c816c6bb57174"></script>
 </head>
 <body>
     <img src="http://bestanimations.com/Earth&Space/Earth/earth-spinning-rotating-animation-24.gif" />
@@ -106,8 +106,8 @@
             // Create new instance of MessagingClient and pass to it apikey
             {
                 apiKey: 'fe-data',
-                mode: 'development',
-                fakeMode: true,
+                mode: 'production',
+                fakeMode: false,
                 debug: true,
                 performanceAudit: true,
                 workerUrl: 'messaging-client-worker.js'
@@ -217,16 +217,8 @@
             // Send all message and measure a duration
             var duration = measure(function() {
                 for (var i = 0; i < messageCount; i++) {
-                    sendMessage(i);
+                    sendMeasurement(i);
                 }
-                /*
-                var Pi=0;
-                var n=1;
-                for (i=0;i<=100000000;i++)
-                {
-                    Pi=Pi+(4/n)-(4/(n+2))
-                    n=n+4
-                }*/
             });
 
             log('Sent ' + messageCount + ' messages in ' + duration + 'ms.');
@@ -258,7 +250,7 @@
             log('Starting load full version.');
 
             var script = document.createElement('script');
-            script.src = "messaging-client-full.js?07ff37f0aad6c4342f0b";
+            script.src = "messaging-client-full.js?e7da727c816c6bb57174";
             script.onload = function() {
                 sendMessage();
             };
