@@ -8,7 +8,7 @@
 
     
 
-    <script src="messaging-client-full.js?19c892556c449a3157e8"></script>
+    <script src="messaging-client-full.js?ab2f8ffa3e58758fd54b"></script>
 </head>
 <body>
     <img src="http://bestanimations.com/Earth&Space/Earth/earth-spinning-rotating-animation-24.gif" />
@@ -114,20 +114,12 @@
             }
         );
 
-        function sendMessage(){
-            var message = messagingClient.create('MyTestAnalyticsMessage', { 
-                name: 'messagingclient-js.tests', 
-                count: 1
-            });
-            messagingClient.send(message);
-        }
-
         function sendMeasurement(){
             var message = messagingClient.create('measurement', { 
                 name: 'messagingclient-js.tests', 
                 measurement: 2, 
                 count: 1, 
-                tags: { tag1: "hello", tag2: "world" }
+                tags: { tag1: "hello", tag2: "world", browser: "_" }
             });
             messagingClient.send(message);
         }
@@ -266,7 +258,7 @@
             log('Starting load full version.');
 
             var script = document.createElement('script');
-            script.src = "messaging-client-full.js?19c892556c449a3157e8";
+            script.src = "messaging-client-full.js?ab2f8ffa3e58758fd54b";
             script.onload = function() {
                 sendMessage();
             };
