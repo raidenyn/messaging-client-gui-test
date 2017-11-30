@@ -1,1 +1,278 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name="theme-color" content="#000000"><link rel="manifest" href="./manifest.json"><link rel="shortcut icon" href="./favicon.ico"><title>React App</title><link href="./static/css/main.6cea6227.css" rel="stylesheet"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div><script type="text/javascript" src="./static/js/main.9683ef67.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>messaging-client</title>
+
+    
+
+    <script src="messaging-client-full.js?9655b0b00f54f17d7ef5"></script>
+</head>
+<body>
+    <img src="http://bestanimations.com/Earth&Space/Earth/earth-spinning-rotating-animation-24.gif" />
+    
+    <button id="send">Send again</button>
+
+    <div>
+        <h2>Debug log:</h2>
+        <pre id='console-log'></pre>
+    </div>
+
+    <div>
+        <h2>Performance reports:</h2>
+        <pre id='performance-log'></pre>
+    </div>    
+
+    <div>
+        <h2>Ajax request log:</h2>
+        <pre id='ajax-log'></pre>
+    </div>
+
+    <button id="terminate">Terminate All</button>
+
+    <script>
+        function log(message) {
+            document.getElementById('console-log').innerHTML += message + '\n';
+        }
+
+        function measure(func) {
+            var now = function() { return +new Date(); }
+            
+            if (typeof performance !== 'undefined' && typeof performance.now !== 'undefined') {
+                now = function() { return performance.now(); }
+            }
+            
+            try {
+                var start = now();
+                func();
+            } catch (error) {
+                console.error(error);
+            } 
+            finally {
+                return now() - start;
+            }
+        }
+
+        var totalWorkerEnqueueTime = 0;
+        var averageEnqueueTime = 0;
+        var averageMedianEnqueueTime = 0;
+        var minEnqueueTime = Number.MAX_VALUE;
+        var maxEnqueueTime = 0;
+        var totalMessage = 0;
+
+        var messagingClient = MessagingClient.environment(
+            // Not a public parameter for testing purpose only
+            {
+                listeners: {
+                    ajax: function(data) {
+                        var p = '------------ Start of Request ------------\n';
+                        p += data.type + ' ' + data.url + '\n\n';
+                        p += data.body;
+                        p += '------------ End of Request ------------\n\n';
+                        document.getElementById('ajax-log').innerHTML += p;
+                    },
+                    log: function(logdata) {
+                        var p = logdata.level + '::' + logdata.message + '\n';
+                        log(p);
+                    },
+                    performance: function(report) {
+                        
+                        if (report.type === 'messages') {
+                            totalWorkerEnqueueTime += report.data.workerEnqueue.cpu;
+                            averageEnqueueTime += (report.data.enqueue.clocktime.average || 0) * report.data.enqueue.clocktime.total;
+                            averageMedianEnqueueTime += (report.data.enqueue.clocktime.median || 0) * report.data.enqueue.clocktime.total;
+                            totalMessage += report.data.enqueue.clocktime.total;
+                            minEnqueueTime = Math.min(minEnqueueTime, report.data.enqueue.clocktime.min || Number.MAX_VALUE); 
+                            maxEnqueueTime = Math.max(maxEnqueueTime, report.data.enqueue.clocktime.max || 0); 
+                        }
+                        var p = '\n\nPerformance report:\n';
+                        p += 'Total Worker Enqueue Time: ' + totalWorkerEnqueueTime +'\n';
+                        p += 'Average Enqueue Time: ' + averageEnqueueTime / totalMessage +'\n';
+                        p += 'Average Median Enqueue Time: ' + averageMedianEnqueueTime / totalMessage +'\n';
+                        p += 'Max Enqueue Time: ' + maxEnqueueTime +'\n';
+                        p += 'Min Enqueue Time: ' + minEnqueueTime +'\n';
+                        p += 'Message Count: ' + totalMessage +'\n';
+                        
+
+                        p += '\n\n---\n' + JSON.stringify(report, null, 4);
+
+                        document.getElementById('performance-log').innerHTML = p;
+                    }
+                }
+            }
+        ).instantiate(
+            // Create new instance of MessagingClient and pass to it apikey
+            {
+                apiKey: 'fe-data',
+                mode: 'development',
+                fakeMode: false,
+                debug: true,
+                performanceAudit: true,
+                workerUrl: '/messaging-client-worker.js'
+            }
+        );
+
+        function sendMessage(){
+            var message = messagingClient.create('MyTestAnalyticsMessage', { 
+                name: 'messagingclient-js.tests', 
+                count: 1
+            });
+            messagingClient.send(message);
+        }
+
+        function sendMeasurement(){
+            var message = messagingClient.create('measurement', { 
+                name: 'messagingclient-js.tests', 
+                measurement: 2, 
+                count: 1, 
+                tags: { tag1: "hello", tag2: "world" }
+            });
+            messagingClient.send(message);
+        }
+
+        function sendLog(i){
+            var message = messagingClient.create('log', { 
+                level: 'info', 
+                message: 'Test message #' + i, 
+                applicationName: 'MessagingClientDevEnv'
+            });
+            messagingClient.send(message);
+        }
+
+        function sendGeneric(i){
+            var message = messagingClient.create('WebAnalytics', {
+                session_id: "my-test-session-name",
+                web_server_name: "my-test-web_server_name",
+                page_type_id: 1,
+                channel_id: 2,
+                user_id: "test-user-id-" + i,
+                currency: "usd",
+                language: "th",
+                member_id: 3,
+                action_analysis_tags: "tags;tgas2",
+                action_type: "test-action",
+                action_element_name: "test-action_element_name",
+                action_element_index: 4,
+                action_element_type: "test-action_element_type",
+                search_phrase: "bang",
+                search_occ_no_of_rooms: 5,
+                search_occ_no_of_adults: 6,
+                search_occ_no_of_children: 7,
+                /* property_id: 8,
+                property_eng_name: "mytestproperty",
+                property_city_id: "bkk",
+                property_country_id: "th",
+                is_nha: true,
+                booking_id: 465465464656546,
+                checkin_date: "2017-08-25",
+                checkout_date: "2017-08-27",
+                master_room_id: 8,
+                master_room_name: "mytestroomname",
+                room_id: 9,
+                has_special_request: true,
+                promotion_code: "testtest",
+                discount_percentage: 5,
+                saving_amount_in_usd: 10,
+                booking_fee: 11.2,
+                rooms_tax: 5.1,
+                rooms_fee: 4.5,
+                inclusive_extrabed_price: 4.1,
+                exclusive_rooms_price: 100.15,
+                inclusive_total_price: 11.4,
+                no_of_extra_beds: 9,
+                no_of_rooms: 4,
+                room_capacity: 2,
+                crossedout_rate: 1,
+                actual_rate: 9.9,
+                reviews_provider_id: 1,
+                reviews_filter_guest_type: 1,
+                reviews_filter_languages: "en,ru,th",
+                reviews_filter_roomtypes: "room1,room2",
+                reviews_sorting: 2,
+                reviews_page_index: 1,
+                reviews_page_count: 54,
+                reviews_page_size: 20,
+                reviews_provider_total_count: 451,
+                reviews_guest_type_total_count: 256,
+                reviews_average_rate: 4.5,
+                review_id: 45465818454,
+                review_rating: 8.8,
+                review_language: "th",
+                review_origin: "kr",
+                review_date: 1504262928,
+                review_helpful: true,
+                review_total_helpful_count: 88*/
+            });
+            messagingClient.send(message);
+        }
+
+        function sendMessage(i) {
+            var message_type = (Math.round(Math.random() * 1000)) % 3;
+                    
+            switch(message_type) {
+                case 0: sendMeasurement(i); break;
+                case 1: sendLog(i); break;
+                case 2: sendGeneric(i); break;
+            }
+        }
+
+        // Message count to send
+        var messageCount = 1000;
+
+        function send_many() {
+            // Send all message and measure a duration
+            var duration = measure(function() {
+                for (var i = 0; i < messageCount; i++) {
+                    sendMessage(i);
+                }
+                /*
+                var Pi=0;
+                var n=1;
+                for (i=0;i<=100000000;i++)
+                {
+                    Pi=Pi+(4/n)-(4/(n+2))
+                    n=n+4
+                }*/
+            });
+
+            log('Sent ' + messageCount + ' messages in ' + duration + 'ms.');
+        }
+
+        document.getElementById('send').addEventListener('click', function () {
+            
+
+            // window.location.href = 'http://yandex.ru';
+        });
+
+        document.getElementById('send').addEventListener('click', function () {
+            // window.location.reload(true);
+
+            send_many();
+            // window.location.href = 'http://yandex.ru';
+        });
+
+
+        document.getElementById('terminate').addEventListener('click', function () {
+            MessagingClient.terminate(function() {
+                window.location.reload(true);
+            });
+        });
+
+        /*
+        log('Emualte waiting of full version loading...');
+        setTimeout(function() {
+            log('Starting load full version.');
+
+            var script = document.createElement('script');
+            script.src = "messaging-client-full.js?9655b0b00f54f17d7ef5";
+            script.onload = function() {
+                sendMessage();
+            };
+            document.head.appendChild(script);
+        }, 1000);
+        */
+    </script>
+</body>
+</html>
