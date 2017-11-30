@@ -8,7 +8,7 @@
 
     
 
-    <script src="messaging-client-full.js?9655b0b00f54f17d7ef5"></script>
+    <script src="messaging-client-full.js?5c16aa82cb419de41836"></script>
 </head>
 <body>
     <img src="http://bestanimations.com/Earth&Space/Earth/earth-spinning-rotating-animation-24.gif" />
@@ -110,7 +110,7 @@
                 fakeMode: false,
                 debug: true,
                 performanceAudit: true,
-                workerUrl: '/messaging-client-worker.js'
+                workerUrl: 'messaging-client-worker.js'
             }
         );
 
@@ -266,7 +266,7 @@
             log('Starting load full version.');
 
             var script = document.createElement('script');
-            script.src = "messaging-client-full.js?9655b0b00f54f17d7ef5";
+            script.src = "messaging-client-full.js?5c16aa82cb419de41836";
             script.onload = function() {
                 sendMessage();
             };
